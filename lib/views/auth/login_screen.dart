@@ -41,8 +41,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen<AsyncValue<AuthState>>(authControllerProvider, (_, next) {
       if (next is AsyncError) {
         final err = next.error;
-        String msg = err is AppException ? err.message : 'Login failed.';
-        if (err is ValidationException) msg = err.firstError;
+        String msg;
+        if (err is NetworkException) {
+          msg = 'Cannot connect to server. Check your network and try again.';
+        } else if (err is ValidationException) {
+          msg = err.firstError;
+        } else if (err is AppException) {
+          msg = err.message;
+        } else {
+          msg = 'Login failed. Please try again.';
+        }
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
           ..showSnackBar(SnackBar(

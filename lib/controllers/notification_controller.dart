@@ -16,12 +16,17 @@ class NotificationController extends AsyncNotifier<NotificationPage> {
   Future<NotificationPage> build() => _fetchPage(1);
 
   Future<NotificationPage> _fetchPage(int page) async {
-    final raw = await ref.read(apiClientProvider).get(
+    final response = await ref.read(apiClientProvider).get(
           '/api/notifications',
           params: {'page': page},
-        ) as Map<String, dynamic>;
+        );
 
-    final items = (raw['data'] as List)
+    // Normalise: handle plain list, resource wrap, or paginator.
+    final Map<String, dynamic> raw =
+        response is Map<String, dynamic> ? response : {'data': [], 'unread_count': 0, 'current_page': 1, 'last_page': 1};
+
+    final dataRaw = raw['data'];
+    final items = (dataRaw is List ? dataRaw : <dynamic>[])
         .map((e) =>
             TenantNotification.fromJson(e as Map<String, dynamic>))
         .toList();

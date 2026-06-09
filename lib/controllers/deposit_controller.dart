@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/deposit.dart';
 import '../services/api/api_client.dart';
+import '../services/api/response_parser.dart';
 
 // ---------------------------------------------------------------------------
 // Deposits list
@@ -16,9 +17,9 @@ class DepositsController extends AsyncNotifier<List<Deposit>> {
   Future<List<Deposit>> build() => _fetch();
 
   Future<List<Deposit>> _fetch() async {
-    final data =
-        await ref.read(apiClientProvider).get('/api/deposits') as List;
-    return data
+    final raw = await ref.read(apiClientProvider).get('/api/deposits');
+    // Handles both [] and {"data": [...]} response shapes.
+    return extractList(raw)
         .map((e) => Deposit.fromJson(e as Map<String, dynamic>))
         .toList();
   }
@@ -41,10 +42,12 @@ class DepositDetailController extends FamilyAsyncNotifier<Deposit, int> {
   Future<Deposit> build(int arg) => _fetch(arg);
 
   Future<Deposit> _fetch(int id) async {
-    final data = await ref
-        .read(apiClientProvider)
-        .get('/api/deposits/$id') as Map<String, dynamic>;
-    return Deposit.fromJson(data);
+    final raw = await ref.read(apiClientProvider).get('/api/deposits/$id');
+    // Detail may be wrapped in {"data": {...}} or returned directly.
+    final map = raw is Map && raw.containsKey('data') && raw['data'] is Map
+        ? raw['data'] as Map<String, dynamic>
+        : raw as Map<String, dynamic>;
+    return Deposit.fromJson(map);
   }
 
   Future<void> refresh() async {

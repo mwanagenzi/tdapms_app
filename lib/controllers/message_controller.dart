@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/conversation.dart';
 import '../services/api/api_client.dart';
+import '../services/api/response_parser.dart';
 
 // ---------------------------------------------------------------------------
 // Conversations list
@@ -18,9 +19,9 @@ class ConversationsController extends AsyncNotifier<List<Conversation>> {
   Future<List<Conversation>> build() => _fetch();
 
   Future<List<Conversation>> _fetch() async {
-    final data =
-        await ref.read(apiClientProvider).get('/api/messages') as List;
-    return data
+    final raw = await ref.read(apiClientProvider).get('/api/messages');
+    // Handles both [] and {"data": [...]} response shapes.
+    return extractList(raw)
         .map((e) => Conversation.fromJson(e as Map<String, dynamic>))
         .toList();
   }
@@ -43,10 +44,12 @@ class ThreadController extends FamilyAsyncNotifier<Conversation, int> {
   Future<Conversation> build(int arg) => _fetch(arg);
 
   Future<Conversation> _fetch(int id) async {
-    final data = await ref
-        .read(apiClientProvider)
-        .get('/api/messages/$id') as Map<String, dynamic>;
-    return Conversation.fromJson(data);
+    final raw = await ref.read(apiClientProvider).get('/api/messages/$id');
+    // Thread detail may be wrapped {"data": {...}} or returned directly.
+    final map = raw is Map && raw.containsKey('data') && raw['data'] is Map
+        ? raw['data'] as Map<String, dynamic>
+        : raw as Map<String, dynamic>;
+    return Conversation.fromJson(map);
   }
 
   Future<void> refresh() async {
@@ -73,10 +76,7 @@ class ThreadController extends FamilyAsyncNotifier<Conversation, int> {
       await api.post('/api/messages/$arg', body: {'body': body.trim()});
     }
 
-    // Reload thread to surface the new message.
     state = await AsyncValue.guard(() => _fetch(arg));
-
-    // Keep conversation list current.
     ref.invalidate(conversationsControllerProvider);
   }
 }

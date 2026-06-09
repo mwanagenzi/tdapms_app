@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/maintenance_request.dart';
 import '../models/paginated.dart';
 import '../services/api/api_client.dart';
+import '../services/api/response_parser.dart';
 
 // ---------------------------------------------------------------------------
 // State wrapper for the paginated list
@@ -38,7 +39,7 @@ class MaintenanceListState {
 }
 
 // ---------------------------------------------------------------------------
-// Maintenance list (paginated)
+// Maintenance list — handles plain list OR paginated response
 // ---------------------------------------------------------------------------
 
 final maintenanceControllerProvider =
@@ -53,9 +54,11 @@ class MaintenanceController extends AsyncNotifier<MaintenanceListState> {
     final raw = await ref.read(apiClientProvider).get(
           '/api/maintenance',
           params: {'page': page},
-        ) as Map<String, dynamic>;
+        );
 
-    final paged = Paginated.fromJson(raw, MaintenanceRequest.fromJson);
+    // normalisePaginated handles: plain [], {"data":[],...}, paginator Map.
+    final normalised = normalisePaginated(raw);
+    final paged = Paginated.fromJson(normalised, MaintenanceRequest.fromJson);
 
     return MaintenanceListState(
       items: paged.data,
@@ -85,7 +88,6 @@ class MaintenanceController extends AsyncNotifier<MaintenanceListState> {
         ),
       );
     } catch (_) {
-      // Keep existing items; surface error via snackbar in the UI.
       state = AsyncValue.data(current.copyWith(isLoadingMore: false));
     }
   }
@@ -106,10 +108,12 @@ class MaintenanceDetailController
   Future<MaintenanceRequest> build(int arg) => _fetch(arg);
 
   Future<MaintenanceRequest> _fetch(int id) async {
-    final data = await ref
-        .read(apiClientProvider)
-        .get('/api/maintenance/$id') as Map<String, dynamic>;
-    return MaintenanceRequest.fromJson(data);
+    final raw =
+        await ref.read(apiClientProvider).get('/api/maintenance/$id');
+    final map = raw is Map && raw.containsKey('data') && raw['data'] is Map
+        ? raw['data'] as Map<String, dynamic>
+        : raw as Map<String, dynamic>;
+    return MaintenanceRequest.fromJson(map);
   }
 
   Future<void> refresh() async {

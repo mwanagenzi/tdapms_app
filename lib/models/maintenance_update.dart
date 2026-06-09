@@ -17,12 +17,13 @@ class MaintenanceUpdate {
 
   factory MaintenanceUpdate.fromJson(Map<String, dynamic> json) =>
       MaintenanceUpdate(
-        id: json['id'] as int,
-        maintenanceRequestId: json['maintenance_request_id'] as int,
-        status: json['status'] as String,
-        notes: json['notes'] as String,
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        maintenanceRequestId:
+            (json['maintenance_request_id'] as num?)?.toInt() ?? 0,
+        status: json['status'] as String? ?? '',
+        notes: json['notes'] as String? ?? '',
         updatedByName:
             (json['updated_by'] as Map<String, dynamic>?)?['name'] as String?,
-        createdAt: json['created_at'] as String,
+        createdAt: json['created_at'] as String? ?? '',
       );
 }

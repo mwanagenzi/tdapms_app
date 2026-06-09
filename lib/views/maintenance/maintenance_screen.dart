@@ -30,7 +30,7 @@ class MaintenanceScreen extends ConsumerWidget {
               error: (err, _) => ErrorView(
                 message: err is AppException
                     ? err.message
-                    : 'Failed to load requests.',
+                    : err.toString(),
                 onRetry: () =>
                     ref.read(maintenanceControllerProvider.notifier).refresh(),
               ),
@@ -121,8 +121,7 @@ class _RequestCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (request.statusBadge != null)
-                  StatusBadge.fromBadgeInfo(request.statusBadge!),
+                StatusBadge.fromBadgeInfo(request.statusBadge),
               ],
             ),
             const SizedBox(height: 6),
@@ -136,8 +135,7 @@ class _RequestCard extends StatelessWidget {
             const SizedBox(height: 10),
             Row(
               children: [
-                if (request.priorityBadge != null)
-                  StatusBadge.fromBadgeInfo(request.priorityBadge!),
+                StatusBadge.fromBadgeInfo(request.priorityBadge),
                 const Spacer(),
                 Text(
                   timeAgo(request.createdAt),

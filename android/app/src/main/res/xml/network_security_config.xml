@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Allows cleartext (HTTP) traffic to any host.
+    Replace with a domain-scoped rule once the backend is on HTTPS.
+    e.g.:
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">your-server-ip-or-domain</domain>
+    </domain-config>
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

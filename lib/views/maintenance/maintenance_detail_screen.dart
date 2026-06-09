@@ -29,8 +29,7 @@ class MaintenanceDetailScreen extends ConsumerWidget {
       body: state.when(
         loading: () => const LoadingSpinner(),
         error: (err, _) => ErrorView(
-          message:
-              err is AppException ? err.message : 'Failed to load request.',
+          message: err is AppException ? err.message : err.toString(),
           onRetry: () =>
               ref.read(maintenanceDetailProvider(id).notifier).refresh(),
         ),
@@ -76,11 +75,9 @@ class _RequestInfoSection extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              if (request.statusBadge != null)
-                StatusBadge.fromBadgeInfo(request.statusBadge!),
+              StatusBadge.fromBadgeInfo(request.statusBadge),
               const SizedBox(width: 8),
-              if (request.priorityBadge != null)
-                StatusBadge.fromBadgeInfo(request.priorityBadge!),
+              StatusBadge.fromBadgeInfo(request.priorityBadge),
             ],
           ),
           const SizedBox(height: 12),

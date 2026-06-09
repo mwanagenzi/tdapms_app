@@ -6,7 +6,7 @@ class InspectionReportItem {
   final int inspectionReportId;
   final String category;
   final String itemName;
-  final String condition; // good | fair | damaged | missing
+  final String condition;
   final String? notes;
   final BadgeInfo? conditionBadge;
   final List<InspectionPhoto> photos;
@@ -24,13 +24,14 @@ class InspectionReportItem {
 
   factory InspectionReportItem.fromJson(Map<String, dynamic> json) =>
       InspectionReportItem(
-        id: json['id'] as int,
-        inspectionReportId: json['inspection_report_id'] as int,
-        category: json['category'] as String,
-        itemName: json['item_name'] as String,
-        condition: json['condition'] as String,
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        inspectionReportId:
+            (json['inspection_report_id'] as num?)?.toInt() ?? 0,
+        category: json['category'] as String? ?? '',
+        itemName: json['item_name'] as String? ?? '',
+        condition: json['condition'] as String? ?? 'good',
         notes: json['notes'] as String?,
-        conditionBadge: json['condition_badge'] != null
+        conditionBadge: json['condition_badge'] is Map
             ? BadgeInfo.fromJson(
                 json['condition_badge'] as Map<String, dynamic>)
             : null,

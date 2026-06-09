@@ -23,14 +23,14 @@ class TenantNotification {
 
   factory TenantNotification.fromJson(Map<String, dynamic> json) =>
       TenantNotification(
-        id: json['id'] as int,
-        tenantId: json['tenant_id'] as int,
-        type: json['type'] as String,
-        title: json['title'] as String,
-        body: json['body'] as String,
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        tenantId: (json['tenant_id'] as num?)?.toInt() ?? 0,
+        type: json['type'] as String? ?? '',
+        title: json['title'] as String? ?? '',
+        body: json['body'] as String? ?? '',
         data: json['data'] as Map<String, dynamic>?,
         readAt: json['read_at'] as String?,
-        createdAt: json['created_at'] as String,
+        createdAt: json['created_at'] as String? ?? '',
       );
 }
 

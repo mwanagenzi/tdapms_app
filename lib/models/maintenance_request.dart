@@ -10,8 +10,6 @@ class MaintenanceRequest {
   final String priority; // low | medium | high | urgent
   final String status; // submitted | in_progress | completed | rejected
   final String createdAt;
-  final BadgeInfo? statusBadge;
-  final BadgeInfo? priorityBadge;
   final List<MaintenanceUpdate> updates;
 
   const MaintenanceRequest({
@@ -23,28 +21,57 @@ class MaintenanceRequest {
     required this.priority,
     required this.status,
     required this.createdAt,
-    this.statusBadge,
-    this.priorityBadge,
     this.updates = const [],
   });
 
+  // ---------------------------------------------------------------------------
+  // Derive badges locally — never depend on backend computed attributes.
+  // ---------------------------------------------------------------------------
+
+  BadgeInfo get statusBadge {
+    switch (status) {
+      case 'submitted':
+        return const BadgeInfo(label: 'Submitted', color: 'blue');
+      case 'in_progress':
+        return const BadgeInfo(label: 'In Progress', color: 'yellow');
+      case 'completed':
+        return const BadgeInfo(label: 'Completed', color: 'green');
+      case 'rejected':
+        return const BadgeInfo(label: 'Rejected', color: 'red');
+      default:
+        return BadgeInfo(
+          label: status.replaceAll('_', ' '),
+          color: 'gray',
+        );
+    }
+  }
+
+  BadgeInfo get priorityBadge {
+    switch (priority) {
+      case 'low':
+        return const BadgeInfo(label: 'Low', color: 'green');
+      case 'medium':
+        return const BadgeInfo(label: 'Medium', color: 'yellow');
+      case 'high':
+        return const BadgeInfo(label: 'High', color: 'orange');
+      case 'urgent':
+        return const BadgeInfo(label: 'Urgent', color: 'red');
+      default:
+        return BadgeInfo(label: priority, color: 'gray');
+    }
+  }
+
   factory MaintenanceRequest.fromJson(Map<String, dynamic> json) =>
       MaintenanceRequest(
-        id: json['id'] as int,
-        unitId: json['unit_id'] as int,
-        tenantId: json['tenant_id'] as int,
-        title: json['title'] as String,
-        description: json['description'] as String,
-        priority: json['priority'] as String,
-        status: json['status'] as String,
-        createdAt: json['created_at'] as String,
-        statusBadge: json['status_badge'] != null
-            ? BadgeInfo.fromJson(json['status_badge'] as Map<String, dynamic>)
-            : null,
-        priorityBadge: json['priority_badge'] != null
-            ? BadgeInfo.fromJson(
-                json['priority_badge'] as Map<String, dynamic>)
-            : null,
+        // Use safe numeric parsing — backend may return int or num.
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        unitId: (json['unit_id'] as num?)?.toInt() ?? 0,
+        tenantId: (json['tenant_id'] as num?)?.toInt() ?? 0,
+        title: json['title'] as String? ?? '',
+        description: json['description'] as String? ?? '',
+        priority: json['priority'] as String? ?? 'medium',
+        status: json['status'] as String? ?? 'submitted',
+        createdAt: json['created_at'] as String? ?? '',
         updates: (json['updates'] as List? ?? [])
             .map((e) =>
                 MaintenanceUpdate.fromJson(e as Map<String, dynamic>))

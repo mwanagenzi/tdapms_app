@@ -14,8 +14,6 @@ class Deposit {
   final String? refundInitiatedAt;
   final String? refundedAt;
   final BadgeInfo? statusBadge;
-
-  // Populated on detail fetch
   final List<EscrowTransaction> escrowTransactions;
   final List<DepositDeduction> deductions;
 
@@ -36,19 +34,21 @@ class Deposit {
   });
 
   factory Deposit.fromJson(Map<String, dynamic> json) => Deposit(
-        id: json['id'] as int,
-        leaseId: json['lease_id'] as int,
-        amountRequired: double.parse(json['amount_required'].toString()),
-        amountPaid: double.parse(json['amount_paid'].toString()),
-        status: json['status'] as String,
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        leaseId: (json['lease_id'] as num?)?.toInt() ?? 0,
+        amountRequired:
+            double.tryParse(json['amount_required']?.toString() ?? '0') ?? 0,
+        amountPaid:
+            double.tryParse(json['amount_paid']?.toString() ?? '0') ?? 0,
+        status: json['status'] as String? ?? 'pending',
         outstanding:
-            double.parse((json['outstanding'] ?? '0').toString()),
+            double.tryParse(json['outstanding']?.toString() ?? '0') ?? 0,
         isFullyPaid: json['is_fully_paid'] as bool? ?? false,
         netRefundAmount:
-            double.parse((json['net_refund_amount'] ?? '0').toString()),
+            double.tryParse(json['net_refund_amount']?.toString() ?? '0') ?? 0,
         refundInitiatedAt: json['refund_initiated_at'] as String?,
         refundedAt: json['refunded_at'] as String?,
-        statusBadge: json['status_badge'] != null
+        statusBadge: json['status_badge'] is Map
             ? BadgeInfo.fromJson(json['status_badge'] as Map<String, dynamic>)
             : null,
         escrowTransactions: (json['escrow_transactions'] as List? ?? [])

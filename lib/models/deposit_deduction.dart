@@ -7,7 +7,7 @@ class DepositDeduction {
   final String reason;
   final String? description;
   final double amount;
-  final String status; // pending | approved | rejected
+  final String status;
   final String? reviewedAt;
   final String? reviewNotes;
   final BadgeInfo? statusBadge;
@@ -27,16 +27,17 @@ class DepositDeduction {
 
   factory DepositDeduction.fromJson(Map<String, dynamic> json) =>
       DepositDeduction(
-        id: json['id'] as int,
-        leaseId: json['lease_id'] as int,
-        inspectionReportItemId: json['inspection_report_item_id'] as int?,
-        reason: json['reason'] as String,
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        leaseId: (json['lease_id'] as num?)?.toInt() ?? 0,
+        inspectionReportItemId:
+            (json['inspection_report_item_id'] as num?)?.toInt(),
+        reason: json['reason'] as String? ?? '',
         description: json['description'] as String?,
-        amount: double.parse(json['amount'].toString()),
-        status: json['status'] as String,
+        amount: double.tryParse(json['amount']?.toString() ?? '0') ?? 0,
+        status: json['status'] as String? ?? 'pending',
         reviewedAt: json['reviewed_at'] as String?,
         reviewNotes: json['review_notes'] as String?,
-        statusBadge: json['status_badge'] != null
+        statusBadge: json['status_badge'] is Map
             ? BadgeInfo.fromJson(json['status_badge'] as Map<String, dynamic>)
             : null,
       );
