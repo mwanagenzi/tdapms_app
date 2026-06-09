@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/inspection_report.dart';
 import '../services/api/api_client.dart';
+import '../services/api/response_parser.dart';
 
 // ---------------------------------------------------------------------------
 // Inspections list
@@ -16,9 +17,9 @@ class InspectionsController extends AsyncNotifier<List<InspectionReport>> {
   Future<List<InspectionReport>> build() => _fetch();
 
   Future<List<InspectionReport>> _fetch() async {
-    final data =
-        await ref.read(apiClientProvider).get('/api/inspections') as List;
-    return data
+    final raw = await ref.read(apiClientProvider).get('/api/inspections');
+    // Handles both [] and {"data": [...]} response shapes.
+    return extractList(raw)
         .map((e) => InspectionReport.fromJson(e as Map<String, dynamic>))
         .toList();
   }
@@ -44,10 +45,13 @@ class InspectionDetailController
   Future<InspectionReport> build(int arg) => _fetch(arg);
 
   Future<InspectionReport> _fetch(int id) async {
-    final data = await ref
-        .read(apiClientProvider)
-        .get('/api/inspections/$id') as Map<String, dynamic>;
-    return InspectionReport.fromJson(data);
+    final raw =
+        await ref.read(apiClientProvider).get('/api/inspections/$id');
+    // Detail may be wrapped {"data": {...}} or returned directly.
+    final map = raw is Map && raw.containsKey('data') && raw['data'] is Map
+        ? raw['data'] as Map<String, dynamic>
+        : raw as Map<String, dynamic>;
+    return InspectionReport.fromJson(map);
   }
 
   Future<void> refresh() async {

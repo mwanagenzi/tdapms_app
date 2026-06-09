@@ -33,7 +33,7 @@ class InspectionDetailScreen extends ConsumerWidget {
         loading: () => const LoadingSpinner(),
         error: (err, _) => ErrorView(
           message:
-              err is AppException ? err.message : 'Failed to load report.',
+              err is AppException ? err.message : err.toString(),
           onRetry: () =>
               ref.read(inspectionDetailProvider(id).notifier).refresh(),
         ),

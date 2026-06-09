@@ -21,7 +21,7 @@ class InspectionsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Inspection Reports'),
+        title: const Text('Inspection History'),
         leading: const BackButton(),
       ),
       body: Column(
@@ -31,9 +31,7 @@ class InspectionsScreen extends ConsumerWidget {
             child: state.when(
               loading: () => const LoadingSpinner(),
               error: (err, _) => ErrorView(
-                message: err is AppException
-                    ? err.message
-                    : 'Failed to load inspections.',
+                message: err is AppException ? err.message : err.toString(),
                 onRetry: () =>
                     ref.read(inspectionsControllerProvider.notifier).refresh(),
               ),

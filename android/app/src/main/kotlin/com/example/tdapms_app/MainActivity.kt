@@ -1,4 +1,4 @@
-package com.example.tdapms_app
+package com.mwanagenzi.tdapms_app
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -13,9 +13,10 @@ class InspectionPhoto {
 
   factory InspectionPhoto.fromJson(Map<String, dynamic> json) =>
       InspectionPhoto(
-        id: json['id'] as int,
-        inspectionReportItemId: json['inspection_report_item_id'] as int,
-        path: json['path'] as String,
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        inspectionReportItemId:
+            (json['inspection_report_item_id'] as num?)?.toInt() ?? 0,
+        path: json['path'] as String? ?? '',
         caption: json['caption'] as String?,
       );
 }

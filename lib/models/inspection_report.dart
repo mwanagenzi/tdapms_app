@@ -21,21 +21,21 @@ class InspectionReport {
     this.items = const [],
   });
 
-  String get typeLabel =>
-      type == 'move_in' ? 'Move-In' : 'Move-Out';
+  String get typeLabel => type == 'move_in' ? 'Move-In' : 'Move-Out';
 
   bool get isCompleted => status == 'completed';
 
   factory InspectionReport.fromJson(Map<String, dynamic> json) =>
       InspectionReport(
-        id: json['id'] as int,
-        leaseId: json['lease_id'] as int,
-        type: json['type'] as String,
-        status: json['status'] as String,
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        leaseId: (json['lease_id'] as num?)?.toInt() ?? 0,
+        type: json['type'] as String? ?? 'move_in',
+        status: json['status'] as String? ?? 'draft',
         notes: json['notes'] as String?,
         completedAt: json['completed_at'] as String?,
-        conductedByName:
-            (json['conducted_by'] as Map<String, dynamic>?)?['name'] as String?,
+        conductedByName: json['conducted_by'] is Map
+            ? (json['conducted_by'] as Map<String, dynamic>)['name'] as String?
+            : null,
         items: (json['items'] as List? ?? [])
             .map((e) =>
                 InspectionReportItem.fromJson(e as Map<String, dynamic>))
