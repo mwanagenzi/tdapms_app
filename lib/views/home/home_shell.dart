@@ -118,10 +118,31 @@ class _HomeShellState extends ConsumerState<HomeShell>
                   ),
                 ),
                 const PopupMenuDivider(),
-                const PopupMenuItem(value: 'logout', child: Text('Sign out')),
+                const PopupMenuItem(
+                  value: 'profile',
+                  child: Row(
+                    children: [
+                      Icon(Icons.person_outline_rounded, size: 18),
+                      SizedBox(width: 10),
+                      Text('Profile'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout_rounded, size: 18),
+                      SizedBox(width: 10),
+                      Text('Sign out'),
+                    ],
+                  ),
+                ),
               ],
               onSelected: (v) {
-                if (v == 'logout') {
+                if (v == 'profile') {
+                  context.push('/profile');
+                } else if (v == 'logout') {
                   ref.read(authControllerProvider.notifier).logout();
                 }
               },

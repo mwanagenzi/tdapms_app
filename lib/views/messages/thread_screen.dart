@@ -2,7 +2,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../controllers/auth_controller.dart';
 import '../../controllers/message_controller.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/theme/app_theme.dart';
@@ -13,8 +12,9 @@ import '../shared/widgets/loading_spinner.dart';
 
 class ThreadScreen extends ConsumerStatefulWidget {
   final int id;
+  final String subject;
 
-  const ThreadScreen({super.key, required this.id});
+  const ThreadScreen({super.key, required this.id, required this.subject});
 
   @override
   ConsumerState<ThreadScreen> createState() => _ThreadScreenState();
@@ -61,7 +61,6 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
       _bodyCtrl.clear();
       setState(() => _attachments.clear());
 
-      // Scroll to the bottom after sending.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollCtrl.hasClients) {
           _scrollCtrl.animateTo(
@@ -86,36 +85,31 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(threadControllerProvider(widget.id));
-    final currentUserId =
-        ref.watch(authControllerProvider).valueOrNull?.user?.id;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          state.valueOrNull?.subject ??
-              '${state.valueOrNull?.contextLabel ?? 'Thread'} Chat',
-        ),
+        title: Text(widget.subject),
         leading: const BackButton(),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () =>
-                ref.read(threadControllerProvider(widget.id).notifier).refresh(),
+            onPressed: () => ref
+                .read(threadControllerProvider(widget.id).notifier)
+                .refresh(),
           ),
         ],
       ),
       body: state.when(
         loading: () => const LoadingSpinner(),
         error: (err, _) => ErrorView(
-          message:
-              err is AppException ? err.message : 'Failed to load thread.',
+          message: err is AppException ? err.message : err.toString(),
           onRetry: () =>
               ref.read(threadControllerProvider(widget.id).notifier).refresh(),
         ),
-        data: (conv) => Column(
+        data: (messages) => Column(
           children: [
             Expanded(
-              child: conv.messages.isEmpty
+              child: messages.isEmpty
                   ? const Center(
                       child: Text(
                         'No messages yet. Start the conversation.',
@@ -126,15 +120,10 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
                       controller: _scrollCtrl,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
-                      itemCount: conv.messages.length,
-                      itemBuilder: (_, i) {
-                        final msg = conv.messages[i];
-                        final isMine = msg.senderId == currentUserId;
-                        return _MessageBubble(
-                          message: msg,
-                          isMine: isMine,
-                        );
-                      },
+                      itemCount: messages.length,
+                      itemBuilder: (_, i) => _MessageBubble(
+                        message: messages[i],
+                      ),
                     ),
             ),
             _ReplyComposer(
@@ -154,12 +143,13 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
 
 class _MessageBubble extends StatelessWidget {
   final Message message;
-  final bool isMine;
 
-  const _MessageBubble({required this.message, required this.isMine});
+  const _MessageBubble({required this.message});
 
   @override
   Widget build(BuildContext context) {
+    final isMine = message.isMine;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -237,11 +227,12 @@ class _MessageBubble extends StatelessWidget {
                       ),
                       if (message.attachments.isNotEmpty) ...[
                         const SizedBox(height: 8),
-                        ...message.attachments
-                            .map((a) => _AttachmentChip(
-                                  attachment: a,
-                                  isMine: isMine,
-                                )),
+                        ...message.attachments.map(
+                          (a) => _AttachmentChip(
+                            attachment: a,
+                            isMine: isMine,
+                          ),
+                        ),
                       ],
                       const SizedBox(height: 4),
                       Text(
@@ -338,8 +329,8 @@ class _ReplyComposer extends StatelessWidget {
               SizedBox(
                 height: 52,
                 child: ListView.separated(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 8),
                   scrollDirection: Axis.horizontal,
                   itemCount: attachments.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 8),
@@ -350,7 +341,8 @@ class _ReplyComposer extends StatelessWidget {
                 ),
               ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [

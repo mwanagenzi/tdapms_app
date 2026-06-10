@@ -15,6 +15,7 @@ import 'views/maintenance/submit_request_screen.dart';
 import 'views/messages/conversations_screen.dart';
 import 'views/messages/thread_screen.dart';
 import 'views/notifications/notifications_screen.dart';
+import 'views/profile/profile_screen.dart';
 import 'views/shared/widgets/loading_spinner.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -87,8 +88,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/messages/:id',
-        builder: (_, state) =>
-            ThreadScreen(id: int.parse(state.pathParameters['id']!)),
+        builder: (_, state) => ThreadScreen(
+          id: int.parse(state.pathParameters['id']!),
+          subject: state.extra as String? ?? 'Thread',
+        ),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (_, _) => const ProfileScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

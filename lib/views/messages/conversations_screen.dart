@@ -27,9 +27,7 @@ class ConversationsScreen extends ConsumerWidget {
             child: state.when(
               loading: () => const LoadingSpinner(),
               error: (err, _) => ErrorView(
-                message: err is AppException
-                    ? err.message
-                    : 'Failed to load messages.',
+                message: err is AppException ? err.message : err.toString(),
                 onRetry: () => ref
                     .read(conversationsControllerProvider.notifier)
                     .refresh(),
@@ -69,11 +67,14 @@ class _ConversationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final latest = conv.latestMessage;
+    final last = conv.lastMessage;
     final hasUnread = conv.hasUnread;
 
     return InkWell(
-      onTap: () => context.push('/messages/${conv.id}'),
+      onTap: () => context.push(
+        '/messages/${conv.id}',
+        extra: conv.subject,
+      ),
       child: Container(
         color: hasUnread
             ? AppColors.primaryDark.withValues(alpha: 0.03)
@@ -86,7 +87,8 @@ class _ConversationTile extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: AppColors.primaryDark.withValues(alpha: 0.1),
+                  backgroundColor:
+                      AppColors.primaryDark.withValues(alpha: 0.1),
                   child: Icon(
                     conv.contextLabel == 'Maintenance'
                         ? Icons.build_rounded
@@ -105,8 +107,6 @@ class _ConversationTile extends StatelessWidget {
                       decoration: const BoxDecoration(
                         color: AppColors.info,
                         shape: BoxShape.circle,
-                        // White ring to separate from avatar
-                        // ignore: use_colored_box
                       ),
                     ),
                   ),
@@ -121,8 +121,7 @@ class _ConversationTile extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          conv.subject ??
-                              '${conv.contextLabel} Thread',
+                          conv.subject,
                           style: TextStyle(
                             fontWeight: hasUnread
                                 ? FontWeight.w700
@@ -134,26 +133,27 @@ class _ConversationTile extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (latest != null)
+                      if (last != null)
                         Text(
-                          timeAgo(latest.createdAt),
+                          timeAgo(last.date),
                           style: const TextStyle(
                               fontSize: 11,
                               color: AppColors.textSecondary),
                         ),
                     ],
                   ),
-                  if (latest != null) ...[
+                  if (last != null) ...[
                     const SizedBox(height: 3),
                     Text(
-                      '${latest.senderName}: ${latest.body}',
+                      '${last.sender}: ${last.body}',
                       style: TextStyle(
                         fontSize: 13,
                         color: hasUnread
                             ? AppColors.textPrimary
                             : AppColors.textSecondary,
-                        fontWeight:
-                            hasUnread ? FontWeight.w500 : FontWeight.normal,
+                        fontWeight: hasUnread
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -168,6 +168,23 @@ class _ConversationTile extends StatelessWidget {
                 ],
               ),
             ),
+            if (hasUnread)
+              Container(
+                margin: const EdgeInsets.only(left: 8),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.info,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${conv.unreadCount}',
+                  style: const TextStyle(
+                      fontSize: 11,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700),
+                ),
+              ),
           ],
         ),
       ),

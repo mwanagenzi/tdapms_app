@@ -1,64 +1,48 @@
 class MessageAttachment {
-  final int id;
-  final int messageId;
-  final String path;
+  final String url;
   final String filename;
-  final String? mimeType;
-  final int? size;
 
-  const MessageAttachment({
-    required this.id,
-    required this.messageId,
-    required this.path,
-    required this.filename,
-    this.mimeType,
-    this.size,
-  });
+  const MessageAttachment({required this.url, required this.filename});
 
   factory MessageAttachment.fromJson(Map<String, dynamic> json) =>
       MessageAttachment(
-        id: json['id'] as int,
-        messageId: json['message_id'] as int,
-        path: json['path'] as String,
-        filename: json['filename'] as String,
-        mimeType: json['mime_type'] as String?,
-        size: json['size'] as int?,
+        url: json['url'] as String? ?? '',
+        filename: json['filename'] as String? ?? '',
       );
 }
 
 class Message {
   final int id;
-  final int conversationId;
-  final int senderId;
   final String senderName;
   final String body;
-  final String? readAt;
+  final bool isMine;
+  final bool read;
   final String createdAt;
   final List<MessageAttachment> attachments;
 
   const Message({
     required this.id,
-    required this.conversationId,
-    required this.senderId,
     required this.senderName,
     required this.body,
-    this.readAt,
+    required this.isMine,
+    required this.read,
     required this.createdAt,
     this.attachments = const [],
   });
 
-  bool get isRead => readAt != null;
+  bool get isRead => read;
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
-        id: json['id'] as int,
-        conversationId: json['conversation_id'] as int,
-        senderId: json['sender_id'] as int,
-        senderName:
-            (json['sender'] as Map<String, dynamic>?)?['name'] as String? ??
-                'Unknown',
-        body: json['body'] as String,
-        readAt: json['read_at'] as String?,
-        createdAt: json['created_at'] as String,
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        // sender is either {id, name} object or a plain string
+        senderName: json['sender'] is Map
+            ? (json['sender'] as Map<String, dynamic>)['name'] as String? ??
+                'Unknown'
+            : json['sender'] as String? ?? 'Unknown',
+        body: json['body'] as String? ?? '',
+        isMine: json['is_mine'] as bool? ?? false,
+        read: json['read'] as bool? ?? false,
+        createdAt: json['created_at'] as String? ?? '',
         attachments: (json['attachments'] as List? ?? [])
             .map((e) =>
                 MessageAttachment.fromJson(e as Map<String, dynamic>))
